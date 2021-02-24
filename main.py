@@ -3,6 +3,8 @@ import os
 import requests
 import json
 import random
+from replit import db
+
 
 client = discord.Client()
 
@@ -32,6 +34,24 @@ def get_quote():
   json_data = json.loads(response.text)
   quote = json_data[0]['q'] + " - " + json_data[0]['a']
   return quote
+
+# updates db when new encouraging messages are added to it
+def update_encouragements(msg):
+  if "encouragements" in db.keys():
+    encouragements = db["encouragements"]
+    encouragements.append(msg)
+    db["encouragements"] = encouragements
+  else:
+    db["encouragements"] = [msg]
+
+# updates db when encouraging messages are deleted
+def delete_encouragements(index):
+  encouragements = db["encouragements"]
+
+  if len(encouragements) > index:
+    del encouragements[index]
+    db["encouragements"] = encouragements
+
 
 # called when bot is logged in and ready to be used 
 @client.event
