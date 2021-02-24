@@ -5,7 +5,6 @@ import json
 import random
 from replit import db
 
-
 client = discord.Client()
 
 sad_words = [
@@ -76,10 +75,39 @@ async def on_message(msg):
     quote = get_quote()
     await msg.channel.send(quote)
 
+  options = starter_encouragements
+
+  if "encouragements" in db.keys():
+    options = options + db["encouragements"]
+
+
   # if bot detects any "sad" word from the 
   # client's messages, then it will randomly respond with
   # an encouraging message from the list
   if any(word in msg_content for word in sad_words):
-    await msg.channel.send(random.choice(starter_encouragements))
+    await msg.channel.send(random.choice(options))
+
+  # adds new encouraging messages to the db from clients
+  # after the invoking "$new" command with their message 
+  if msg_content.startswith('$new'):
+    encouraging_msg = msg_content.split("$new ", 1)[1]
+    update_encouragements(encouraging_msg)
+    await msg.channel.send('New encouraging message added!')
+
+  # deletes encouraging messages from the db
+  # after the invoking "$del" command with an integer index 
+  if msg_content.startswith('$del'):
+    # if there's currently no encouragements in the db
+    # return an empty list to client 
+    encouragements = []
+
+    # if there's currently encouragements in the db
+    # return an updated list to client after deletion
+    if "encouragements" in db.keys():
+      index = int(msg_content.split("$del", 1)[1])
+      delete_encouragements(index)
+      encouragements = db["encouragements"]
+
+    await msg.channel.send(encouragements)
 
 client.run(os.getenv('TOKEN'))
