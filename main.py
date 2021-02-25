@@ -4,6 +4,7 @@ import requests
 import json
 import random
 from replit import db
+from keep_alive import keep_alive
 
 client = discord.Client()
 
@@ -144,4 +145,7 @@ async def on_message(msg):
       db["responding"] = False
       await msg.channel.send("Responding is off!")
 
+# UptimeRobot will ping the web server every
+# 5 minutes to keep the bot running
+keep_alive() 
 client.run(os.getenv('TOKEN'))
