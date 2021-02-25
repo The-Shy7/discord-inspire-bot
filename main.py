@@ -17,7 +17,11 @@ sad_words = [
   "pessimistic", 
   "heartbroken", 
   "miserable", 
-  "depressing"
+  "depressing",
+  "enraged",
+  "irritable",
+  "sullen",
+  "uptight",
   ]
 
 starter_encouragements = [
@@ -25,6 +29,9 @@ starter_encouragements = [
   "Hang in there.",
   "You are an amazing person!"
 ]
+
+if "responding" not in db.keys():
+  db["responding"] = True
 
 # makes request to API and parses returned JSON
 # for a random quote with the author
@@ -75,17 +82,18 @@ async def on_message(msg):
     quote = get_quote()
     await msg.channel.send(quote)
 
-  options = starter_encouragements
+  # if bot responses are on
+  if db["responding"]:
+    options = starter_encouragements
 
-  if "encouragements" in db.keys():
-    options = options + db["encouragements"]
+    if "encouragements" in db.keys():
+      options = options + db["encouragements"]
 
-
-  # if bot detects any "sad" word from the 
-  # client's messages, then it will randomly respond with
-  # an encouraging message from the list
-  if any(word in msg_content for word in sad_words):
-    await msg.channel.send(random.choice(options))
+    # if bot detects any "sad" word from the 
+    # client's messages, then it will randomly respond with
+    # an encouraging message from the list
+    if any(word in msg_content for word in sad_words):
+      await msg.channel.send(random.choice(options))
 
   # adds new encouraging messages to the db from clients
   # after the invoking "$new" command with their message 
@@ -109,5 +117,31 @@ async def on_message(msg):
       encouragements = db["encouragements"]
 
     await msg.channel.send(encouragements)
+
+  # shows current list of user-added encouraging messages
+  # after the invoking "$list" command
+  if msg_content.startswith('$list'):
+    encouragements = []
+
+    if "encouragements" in db.keys():
+      encouragements = db["encouragements"]
+    
+    await msg.channel.send(encouragements)
+
+  # allows users to turn off the bot's responses 
+  # to sad words with encouraging messages
+  # by using the "$responding" command 
+  # if there is a "true" after the command, the 
+  # bot will turn on responding, it will be turned off
+  # for other words after the commmand 
+  if msg_content.startswith('$responding'):
+    val = msg_content.split("$responding ", 1)[1]
+
+    if val.lower() == "true":
+      db["responding"] = True
+      await msg.channel.send("Responding is on!")
+    else:
+      db["responding"] = False
+      await msg.channel.send("Responding is off!")
 
 client.run(os.getenv('TOKEN'))
